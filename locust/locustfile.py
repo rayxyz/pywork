@@ -4,11 +4,11 @@ file = open("../user_id_file.txt", "r")
 uid_content = file.read()
 uid_array = uid_content.split("\n")
 
-class UserBehavior(TaskSet):
+class UserInfo(TaskSet):
     def on_start(self):
         """ on_start is called when a Locust start before any task is scheduled """
         print "Starting..."
-    
+
     @task(2)
     def user_info(self):
         for uid in uid_array:
@@ -28,6 +28,6 @@ class UserBehavior(TaskSet):
         self.client.get("/")"""
 
 class WebsiteUser(HttpLocust):
-    task_set = UserBehavior
+    task_set = UserInfo
     min_wait = 5000
     max_wait = 9000
