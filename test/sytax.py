@@ -66,3 +66,10 @@ anim.walk()
 monkey = Monkey()
 monkey.walk()
 monkey.eat()
+
+def generator_generate():
+    array = {1, 4324, 545, 4, 34, 545, 3, 0, -56, 43, 32, -23}
+    y = sum(x*x for x in array)
+    print y
+
+generator_generate()
