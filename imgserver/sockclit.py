@@ -1,4 +1,13 @@
+#!/usr/bin/env python
+
 import socket
+from os import walk
+from filewatcher import FileWatcher
+
+file_path = '/home/ray/file/images'
+# host = 'www.ray-xyz.com'
+host = 'localhost'
+port = 8888
 
 class ImgSocketClient:
     def __init__(self, sock=None):
@@ -25,6 +34,21 @@ class ImgSocketClient:
             print('closing socket...')
             self.sock.close()
 
+class ImgUploader:
+    def __init__(self):
+        print('Initializing image uploader...')
+
+    # def check_imgs(self):
+    #     files []
+    #     for (dirpath, dirnames, filenames) in walk(file_path):
+    #         files.extend(filenames)
+    #         break
+    #     print(files)
+
 imgsockcli = ImgSocketClient()
-imgsockcli.connect('localhost', 8888)
+imgsockcli.connect(host, port)
 imgsockcli.send_data('Hi, I am from socket client!!!')
+print('Starting watcher...')
+watcher = FileWatcher()
+watcher.watch(file_path)
+print('The file watcher started.')
