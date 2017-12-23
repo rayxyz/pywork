@@ -2,12 +2,16 @@
 
 import socket
 
+HOST = 'localhost'
+PORT = 8888
+DATA_BLOCK_SIZE = 1 << 10
+
 class ImgSocketServer:
     def __init__(self, sock=None):
         if sock is None:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             # Bind the socket to the port
-            server_address = ('localhost', 8888)
+            server_address = (HOST, PORT)
             print('starting up on {}'.format(server_address))
             self.sock.bind(server_address)
             self.sock.listen(1)
@@ -23,19 +27,18 @@ class ImgSocketServer:
             try:
                 print('reading data...')
                 while True:
-                    data = conn.recv(32)
+                    data = conn.recv(DATA_BLOCK_SIZE)
                     if data:
                         print('data recevied => {}'.format(data))
                     else:
-                        print('receiving data finished.')
                         break
                     bytes_recd = bytes_recd + len(data)
-                print('received all the data.')
+                print('receiving data finished.')
             finally:
-                print('finished a connection request.')
-                # print('closing socket server connection')
-                conn.close()
+                # conn.close()
             print('The lenth of bytes received => {}'.format(bytes_recd))
+
+
 
 print('running the image server....')
 imgsock = ImgSocketServer()

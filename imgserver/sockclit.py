@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import socket
-from os import walk
-from filewatcher import FileWatcher
+import os
+import time
 
 file_path = '/home/ray/file/images'
 # host = 'www.ray-xyz.com'
@@ -20,12 +20,12 @@ class ImgSocketClient:
     def connect(self, host, port):
         self.sock.connect((host, port))
 
-    def send_data(self, msg):
+    def send_data(self, data):
         print('sending data...')
         try:
             totalsent = 0
-            while totalsent < len(msg):
-                sent = self.sock.send(msg[totalsent:])
+            while totalsent < len(data):
+                sent = self.sock.send(data[totalsent:])
                 if sent == 0:
                     raise RuntimeError('socket connection broken')
                 totalsent = totalsent + sent
@@ -34,21 +34,37 @@ class ImgSocketClient:
             print('closing socket...')
             self.sock.close()
 
-class ImgUploader:
+class Uploader:
     def __init__(self):
-        print('Initializing image uploader...')
+        print('Initializing uploader...')
+        new_files = []
+        self.imgsockcli = ImgSocketClient()
+        self.imgsockcli.connect(host, port)
 
-    # def check_imgs(self):
-    #     files []
-    #     for (dirpath, dirnames, filenames) in walk(file_path):
-    #         files.extend(filenames)
-    #         break
-    #     print(files)
+    def files_to_timestamp(self, path):
+        files = [os.path.join(path, f) for f in os.listdir(path)]
+        return dict ([(f, os.path.getmtime(f)) for f in files])
 
-imgsockcli = ImgSocketClient()
-imgsockcli.connect(host, port)
-imgsockcli.send_data('Hi, I am from socket client!!!')
-print('Starting watcher...')
-watcher = FileWatcher()
-watcher.watch(file_path)
-print('The file watcher started.')
+    def watch(self, path_to_watch, interval=5):
+        # path_to_watch = sys.argv[1]
+        print("Watching {}".format(path_to_watch))
+        before = self.files_to_timestamp(path_to_watch)
+        while True:
+            time.sleep (interval)
+            after = self.files_to_timestamp(path_to_watch)
+            new_files = [f for f in after.keys() if not f in before.keys()]
+            if new_files: print "new_files: ", ", ".join(new_files)
+            # print('ther are {} file to be sended.'.format(len(new_files)))
+            for f in new_files:
+                file = open(f, 'r')
+                data = file.read()
+                print('sending file {} to remote server'.format(f))
+                self.imgsockcli.send_data(data)
+                print('sending file {} done.'.format(f))
+            before = after
+
+
+# imgsockcli.send_data('Hi, I am from socket client!!!')
+
+uploader = Uploader()
+uploader.watch(file_path, 3)

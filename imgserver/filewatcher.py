@@ -5,19 +5,22 @@ import os, sys, time
 class FileWatcher:
     def __init__(self):
         print("Initializing watcher...")
+        self.new_files = []
+        self.cleaned_new_files_container = True
+
 
     def files_to_timestamp(self, path):
         files = [os.path.join(path, f) for f in os.listdir(path)]
         return dict ([(f, os.path.getmtime(f)) for f in files])
 
-    def watch(self, path_to_watch):
+    def watch(self, path_to_watch, interval=5):
         # path_to_watch = sys.argv[1]
         print("Watching {}".format(path_to_watch))
 
         before = self.files_to_timestamp(path_to_watch)
 
         while True:
-            time.sleep (2)
+            time.sleep (interval)
             after = self.files_to_timestamp(path_to_watch)
 
             added = [f for f in after.keys() if not f in before.keys()]
@@ -33,4 +36,17 @@ class FileWatcher:
             if removed: print "Removed: ", ", ".join(removed)
             if modified: print "Modified ", ", ".join(modified)
 
+            if len(added) > 0:
+                if not self.cleaned_new_files_container:
+                    new_files.append(added)
+                else:
+                    new_files = added
+
             before = after
+
+    def get_new_files(self):
+        return self.new_files
+
+    def clear_new_files_container(self):
+        self.new_files = []
+        self.cleaned_new_files_container = true
