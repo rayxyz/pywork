@@ -3,11 +3,13 @@
 import socket
 import os
 import time
+import base64
 
 file_path = '/home/ray/file/images'
 # host = 'www.ray-xyz.com'
 host = 'localhost'
 port = 8888
+DATA_SECTION_SEPARATOR = '<$$$$$>'
 
 class ImgSocketClient:
     def __init__(self, sock=None):
@@ -45,6 +47,12 @@ class Uploader:
         files = [os.path.join(path, f) for f in os.listdir(path)]
         return dict ([(f, os.path.getmtime(f)) for f in files])
 
+    def encode_data(self, data):
+        return base64.encodestring(data)
+
+    def prepare_data(self, data_name, effective_data):
+        return self.encode_data(data_name + DATA_SECTION_SEPARATOR + effective_data)
+
     def watch(self, path_to_watch, interval=5):
         # path_to_watch = sys.argv[1]
         print("Watching {}".format(path_to_watch))
@@ -57,7 +65,8 @@ class Uploader:
             # print('ther are {} file to be sended.'.format(len(new_files)))
             for f in new_files:
                 file = open(f, 'r')
-                data = file.read()
+                print('file base name => {}'.format(os.path.basename(f)))
+                data = self.prepare_data(os.path.basename(f), file.read())
                 print('sending file {} to remote server'.format(f))
                 self.imgsockcli.send_data(data)
                 print('sending file {} done.'.format(f))
