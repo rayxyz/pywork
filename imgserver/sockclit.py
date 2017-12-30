@@ -13,17 +13,15 @@ DATA_SECTION_SEPARATOR = '<$$$$$>'
 
 class ImgSocketClient:
     def __init__(self, sock=None):
-        if sock is None:
-            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            print('ready to connect to server...')
-        else:
-            self.sock = sock
+        print('Initializing...')
 
     def connect(self, host, port):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, port))
 
     def send_data(self, data):
         print('sending data...')
+        self.connect(host, port)
         try:
             totalsent = 0
             while totalsent < len(data):
@@ -41,6 +39,8 @@ class Uploader:
         print('Initializing uploader...')
         new_files = []
         self.imgsockcli = ImgSocketClient()
+
+    def connect_server(self):
         self.imgsockcli.connect(host, port)
 
     def files_to_timestamp(self, path):
@@ -61,19 +61,17 @@ class Uploader:
             time.sleep (interval)
             after = self.files_to_timestamp(path_to_watch)
             new_files = [f for f in after.keys() if not f in before.keys()]
-            if new_files: print "new_files: ", ", ".join(new_files)
             # print('ther are {} file to be sended.'.format(len(new_files)))
-            for f in new_files:
-                file = open(f, 'r')
-                print('file base name => {}'.format(os.path.basename(f)))
-                data = self.prepare_data(os.path.basename(f), file.read())
-                print('sending file {} to remote server'.format(f))
-                self.imgsockcli.send_data(data)
-                print('sending file {} done.'.format(f))
+            if new_files:
+                for f in new_files:
+                    file = open(f, 'r')
+                    print('file base name => {}'.format(os.path.basename(f)))
+                    data = self.prepare_data(os.path.basename(f), file.read())
+                    print('sending file {} to remote server'.format(f))
+                    self.imgsockcli.send_data(data)
+                    print('sending file {} done.'.format(f))
+                    file.close()
             before = after
-
-
-# imgsockcli.send_data('Hi, I am from socket client!!!')
 
 uploader = Uploader()
 uploader.watch(file_path, 3)
