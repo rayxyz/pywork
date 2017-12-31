@@ -4,16 +4,21 @@ import socket
 import os
 import time
 import base64
+import progressbar
+import logging
 
-file_path = '/home/ray/file/images'
-# host = 'www.ray-xyz.com'
-host = 'localhost'
-port = 8888
-DATA_SECTION_SEPARATOR = '<$$$$$>'
+FILE_PATH = '/home/ray/file/images'
+HOST = 'www.ray-xyz.com'
+# HOST = 'localhost'
+PORT = 8888
+DATA_SECTION_SEPARATOR = '<-=+=->'
+DATA_BLOCK_SIZE = 1 << 10
 
 class ImgSocketClient:
     def __init__(self, sock=None):
         print('Initializing...')
+        progressbar.streams.wrap_stderr()
+        logging.basicConfig()
 
     def connect(self, host, port):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -21,14 +26,23 @@ class ImgSocketClient:
 
     def send_data(self, data):
         print('sending data...')
-        self.connect(host, port)
+        self.connect(HOST, PORT)
         try:
-            totalsent = 0
-            while totalsent < len(data):
-                sent = self.sock.send(data[totalsent:])
+            total_sent = 0
+            bar = progressbar.ProgressBar()
+            num_blocks_of_data = len(data) / DATA_BLOCK_SIZE
+            for i in bar(range(num_blocks_of_data)):
+                # logging.error('Sending %d', i)
+                sent = self.sock.send(data[total_sent:((i + 1) * DATA_BLOCK_SIZE)])
                 if sent == 0:
                     raise RuntimeError('socket connection broken')
-                totalsent = totalsent + sent
+                total_sent = total_sent + sent
+
+            # while totalsent < len(data):
+            #     sent = self.sock.send(data[totalsent:])
+            #     if sent == 0:
+            #         raise RuntimeError('socket connection broken')
+            #     totalsent = totalsent + sent
             print('sending data complete.')
         finally:
             print('closing socket...')
@@ -40,25 +54,19 @@ class Uploader:
         new_files = []
         self.imgsockcli = ImgSocketClient()
 
-    def connect_server(self):
-        self.imgsockcli.connect(host, port)
-
     def files_to_timestamp(self, path):
         files = [os.path.join(path, f) for f in os.listdir(path)]
-        return dict ([(f, os.path.getmtime(f)) for f in files])
-
-    def encode_data(self, data):
-        return base64.encodestring(data)
+        return dict([(f, os.path.getmtime(f)) for f in files])
 
     def prepare_data(self, data_name, effective_data):
-        return self.encode_data(data_name + DATA_SECTION_SEPARATOR + effective_data)
+        return base64.encodestring(data_name + DATA_SECTION_SEPARATOR + effective_data)
 
     def watch(self, path_to_watch, interval=5):
         # path_to_watch = sys.argv[1]
         print("Watching {}".format(path_to_watch))
         before = self.files_to_timestamp(path_to_watch)
         while True:
-            time.sleep (interval)
+            time.sleep(interval)
             after = self.files_to_timestamp(path_to_watch)
             new_files = [f for f in after.keys() if not f in before.keys()]
             # print('ther are {} file to be sended.'.format(len(new_files)))
@@ -74,4 +82,4 @@ class Uploader:
             before = after
 
 uploader = Uploader()
-uploader.watch(file_path, 3)
+uploader.watch(FILE_PATH, 3)
