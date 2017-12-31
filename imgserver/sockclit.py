@@ -60,7 +60,7 @@ class Uploader:
 
     def prepare_data(self, data_name, effective_data):
         # Add padding "=="
-        return base64.encodestring(data_name + DATA_SECTION_SEPARATOR + effective_data + '==')
+        return base64.b64encode(data_name + DATA_SECTION_SEPARATOR + effective_data + '==')
 
     def watch(self, path_to_watch, interval=5):
         # path_to_watch = sys.argv[1]
