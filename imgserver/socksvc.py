@@ -3,11 +3,11 @@
 import socket
 import base64
 
-HOST = 'localhost'
+HOST = ''
 PORT = 8888
-FILE_PATH = '/home/ray/file/images/recved'
+FILE_PATH = '/root/file/images/recved'
 DATA_BLOCK_SIZE = 1 << 10
-DATA_SECTION_SEPARATOR = '<$$$$$>'
+DATA_SECTION_SEPARATOR = '<-=+=->'
 
 class ImgSocketServer:
     def __init__(self, sock=None):
