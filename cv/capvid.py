@@ -11,7 +11,7 @@ while True:
     time.sleep(0.008)
     ret, frame = cap.read()
     gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-    output.write(frame)
+    # output.write(frame)
     cv.imshow('frame', frame)
     # cv.imshow('gray', gray)
 
